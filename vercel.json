@@ -1,0 +1,14 @@
+{
+    "builds": [
+      {
+        "src": "mental_health_tracker/wsgi.py",
+        "use": "@vercel/python"
+      }
+    ],
+    "routes": [
+      {
+        "src": "/(.*)",
+        "dest": "mental_health_tracker/wsgi.py"
+      }
+    ]
+  }
