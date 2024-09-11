@@ -1,5 +1,4 @@
 name: Push to PWS
-
 on:
   push:
     branches: [ main ]
@@ -9,40 +8,42 @@ on:
     branches: [ main ]
     paths-ignore:
         - '**.md'
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
-
     - name: Set up Git
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-
     - name: Check PWS remote, pull, merge, and push
       env:
         PWS_URL: ${{ secrets.PWS_URL }}
       run: |
-          # Check if main branch exists locally
-          if ! git show-ref --verify --quiet refs/heads/main; then
-            echo "Creating main branch"
-            git branch main
-          fi
-          
-          # Switch to main branch
-          git checkout main
+          # Pastikan kita berada di branch main
+          git checkout main || git checkout -b main
 
-          # Push to main branch and capture the output
-          push_output=$(git push $PWS_URL main:master 2>&1)
-          if [[ $? -ne 0 ]]; then
-            echo "Push failed with output: $push_output"
-            echo "Error: Unable to push changes. Please check the error message above and resolve any conflicts manually."
+          # Cek apakah remote PWS sudah ada, jika belum, tambahkan
+          if ! git remote | grep -q "^pws$"; then
+            git remote add pws $PWS_URL
+          fi
+
+          # Ambil perubahan terbaru dari remote PWS
+          git fetch pws
+
+          # Coba merge perubahan dari remote PWS
+          if ! git merge pws/main --no-edit; then
+            echo "Terjadi konflik saat melakukan merge. Silakan selesaikan konflik secara manual."
             exit 1
           fi
-          echo "Push successful with output: $push_output"
+
+          # Push ke remote PWS
+          if ! git push pws main:main; then
+            echo "Error: Tidak dapat push perubahan. Silakan periksa pesan error di atas dan selesaikan konflik secara manual."
+            exit 1
+          fi
+          echo "Push berhasil dilakukan ke PWS."
