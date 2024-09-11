@@ -20,30 +20,20 @@ jobs:
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-    - name: Check PWS remote, pull, merge, and push
+    - name: Push to PWS
       env:
         PWS_URL: ${{ secrets.PWS_URL }}
       run: |
-          # Pastikan kita berada di branch main
-          git checkout main || git checkout -b main
-
-          # Cek apakah remote PWS sudah ada, jika belum, tambahkan
           if ! git remote | grep -q "^pws$"; then
             git remote add pws $PWS_URL
           fi
-
-          # Ambil perubahan terbaru dari remote PWS (branch master)
           git fetch pws master
-
-          # Coba merge perubahan dari remote PWS (branch master)
           if ! git merge pws/master --no-edit; then
-            echo "Terjadi konflik saat melakukan merge. Silakan selesaikan konflik secara manual."
+            echo "Error: Merge conflict occurred. Please resolve conflicts manually."
             exit 1
           fi
-
-          # Push ke remote PWS (branch master)
           if ! git push pws main:master; then
-            echo "Error: Tidak dapat push perubahan. Silakan periksa pesan error di atas dan selesaikan konflik secara manual."
+            echo "Error: Unable to push changes. Please check the error message above and resolve any conflicts manually."
             exit 1
           fi
-          echo "Push berhasil dilakukan ke PWS (branch master)."
+          echo "Successfully pushed to PWS (master branch)."
