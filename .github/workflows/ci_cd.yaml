@@ -32,18 +32,18 @@ jobs:
             git remote add pws $PWS_URL
           fi
 
-          # Ambil perubahan terbaru dari remote PWS
-          git fetch pws
+          # Ambil perubahan terbaru dari remote PWS (branch master)
+          git fetch pws master
 
-          # Coba merge perubahan dari remote PWS
-          if ! git merge pws/main --no-edit; then
+          # Coba merge perubahan dari remote PWS (branch master)
+          if ! git merge pws/master --no-edit; then
             echo "Terjadi konflik saat melakukan merge. Silakan selesaikan konflik secara manual."
             exit 1
           fi
 
-          # Push ke remote PWS
-          if ! git push pws main:main; then
+          # Push ke remote PWS (branch master)
+          if ! git push pws main:master; then
             echo "Error: Tidak dapat push perubahan. Silakan periksa pesan error di atas dan selesaikan konflik secara manual."
             exit 1
           fi
-          echo "Push berhasil dilakukan ke PWS."
+          echo "Push berhasil dilakukan ke PWS (branch master)."
