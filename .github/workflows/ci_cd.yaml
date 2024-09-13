@@ -1,39 +1,42 @@
 name: Push to PWS
+
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
     paths-ignore:
         - '**.md'
   pull_request:
-    branches: [ main ]
+    branches: [ main, master ]
     paths-ignore:
         - '**.md'
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
       with:
         fetch-depth: 0
+
     - name: Set up Git
       run: |
         git config --global user.name 'github-actions[bot]'
         git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-    - name: Push to PWS
+
+    - name: Check PWS remote, pull, merge, and push
       env:
         PWS_URL: ${{ secrets.PWS_URL }}
       run: |
-          if ! git remote | grep -q "^pws$"; then
-            git remote add pws $PWS_URL
-          fi
-          git fetch pws master
-          if ! git merge pws/master --no-edit; then
-            echo "Error: Merge conflict occurred. Please resolve conflicts manually."
-            exit 1
-          fi
-          if ! git push pws main:master; then
+          echo "Creating temporary branch"
+          git checkout -b tmp
+
+          # Push to master branch and capture the output
+          push_output=$(git push $PWS_URL tmp:master 2>&1)
+          if [[ $? -ne 0 ]]; then
+            echo "Push failed with output: $push_output"
             echo "Error: Unable to push changes. Please check the error message above and resolve any conflicts manually."
             exit 1
           fi
-          echo "Successfully pushed to PWS (master branch)."
+          echo "Push successful with output: $push_output"
